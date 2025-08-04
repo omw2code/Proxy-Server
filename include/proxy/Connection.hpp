@@ -5,11 +5,12 @@
 #include <iostream>
 #include <string>
 #include <memory>
-#include <mutex>
+#include <shared_mutex>
 #include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/smart_ptr/enable_shared_from.hpp>
 #include <boost/asio/ip/tcp.hpp> 
+#include <proxy/JobCache.hpp>
 
 namespace proxy
 {
@@ -20,15 +21,19 @@ namespace proxy
         public:
             typedef boost::shared_ptr<Connection> ptr;
 
+            // create a new connection to our server
             static ptr create(boost::asio::io_context& io_context)
             {
                 return ptr(new Connection(io_context));
             }
 
+            // grab the socket of this connection
             boost::asio::ip::tcp::socket& socket()
             {
                 return socket_;
             }
+
+            // enable reading and writing with this connection to the server
             void start()
             {
                 boost::asio::async_write(socket_, 
@@ -50,7 +55,7 @@ namespace proxy
             Connection(boost::asio::io_context& io_context)
                 : socket_(io_context)
             {}
-
+            
             void handleWrite(const boost::system::error_code& error, std::size_t bytes_transferred) 
             {
                 // Implement
@@ -59,7 +64,7 @@ namespace proxy
 
             void handleRead(const boost::system::error_code& error, std::size_t bytes_transferred)
             {
-                std::unique_lock<std::mutex> lock(connectionMutext_, std::adopt_lock);
+                std::unique_lock<std::shared_mutex> lock(connectionMutext_, std::adopt_lock);
                 // Need to now query the api
 
                 // get the data
@@ -69,9 +74,11 @@ namespace proxy
             boost::asio::ip::tcp::socket socket_;
             static constexpr int max_length_{ 1024 };
             char json_[max_length_];
-            std::mutex connectionMutext_;
+            std::shared_mutex connectionMutext_;
+            JobCache cache_;
+
         }; // class Connection
-    } 
-}
+    }  // namespace server
+} // namespace proxy
 
 #endif

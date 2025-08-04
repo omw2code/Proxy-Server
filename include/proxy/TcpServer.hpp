@@ -18,15 +18,17 @@ namespace proxy
                 }
             ~TcpServer() = default;
 
+            // Open requests from the client
             void start_accept();
 
+            // Handle the new connection to the server
             void handler(Connection::ptr new_connection, const boost::system::error_code& error);
         
         private:
             boost::asio::io_context& io_context_;
             boost::asio::ip::tcp::acceptor acceptor_;
         }; // class BoostServer
-    }
-}
+    } // namespace server
+} // namespace proxy
 
 #endif
