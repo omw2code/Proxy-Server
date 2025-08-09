@@ -14,71 +14,68 @@
 
 namespace proxy
 {
-    namespace server
+    class Connection : public boost::enable_shared_from_this<Connection>
     {
-        class Connection : public boost::enable_shared_from_this<Connection>
+    public:
+        typedef boost::shared_ptr<Connection> ptr;
+
+        // create a new connection to our server
+        static ptr create(boost::asio::io_context& io_context)
         {
-        public:
-            typedef boost::shared_ptr<Connection> ptr;
+            return ptr(new Connection(io_context));
+        }
 
-            // create a new connection to our server
-            static ptr create(boost::asio::io_context& io_context)
-            {
-                return ptr(new Connection(io_context));
-            }
+        // grab the socket of this connection
+        boost::asio::ip::tcp::socket& socket()
+        {
+            return socket_;
+        }
 
-            // grab the socket of this connection
-            boost::asio::ip::tcp::socket& socket()
-            {
-                return socket_;
-            }
+        // enable reading and writing with this connection to the server
+        void start()
+        {
+            boost::asio::async_write(socket_, 
+                boost::asio::buffer(json_), 
+                boost::bind(&proxy::Connection::handleWrite,
+                    shared_from_this(),
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred));;
 
-            // enable reading and writing with this connection to the server
-            void start()
-            {
-                boost::asio::async_write(socket_, 
-                    boost::asio::buffer(json_), 
-                    boost::bind(&proxy::server::Connection::handleWrite,
-                        shared_from_this(),
-                        boost::asio::placeholders::error,
-                        boost::asio::placeholders::bytes_transferred));;
+            boost::asio::async_read(socket_,
+                    boost::asio::buffer(json_, max_length_),
+                    boost::bind(&Connection::handleRead,
+                                shared_from_this(),
+                                boost::asio::placeholders::error,
+                                boost::asio::placeholders::bytes_transferred));
+        }
 
-                boost::asio::async_read(socket_,
-                        boost::asio::buffer(json_, max_length_),
-                        boost::bind(&Connection::handleRead,
-                                    shared_from_this(),
-                                    boost::asio::placeholders::error,
-                                    boost::asio::placeholders::bytes_transferred));
-            }
+    private:
+        Connection(boost::asio::io_context& io_context)
+            : socket_(io_context)
+        {}
+        
+        void handleWrite(const boost::system::error_code& error, std::size_t bytes_transferred) 
+        {
+            // Implement
+            return;
+        }
 
-        private:
-            Connection(boost::asio::io_context& io_context)
-                : socket_(io_context)
-            {}
-            
-            void handleWrite(const boost::system::error_code& error, std::size_t bytes_transferred) 
-            {
-                // Implement
-                return;
-            }
+        void handleRead(const boost::system::error_code& error, std::size_t bytes_transferred)
+        {
+            std::unique_lock<std::shared_mutex> lock(connectionMutext_, std::adopt_lock);
+            // Need to now query the api
 
-            void handleRead(const boost::system::error_code& error, std::size_t bytes_transferred)
-            {
-                std::unique_lock<std::shared_mutex> lock(connectionMutext_, std::adopt_lock);
-                // Need to now query the api
+            // get the data
 
-                // get the data
+        }
+        
+        boost::asio::ip::tcp::socket socket_;
+        static constexpr int max_length_{ 1024 };
+        char json_[max_length_];
+        std::shared_mutex connectionMutext_;
+        JobCache cache_;
 
-            }
-            
-            boost::asio::ip::tcp::socket socket_;
-            static constexpr int max_length_{ 1024 };
-            char json_[max_length_];
-            std::shared_mutex connectionMutext_;
-            JobCache cache_;
-
-        }; // class Connection
-    }  // namespace server
+    }; // class Connection
 } // namespace proxy
 
 #endif

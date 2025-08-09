@@ -1,6 +1,6 @@
 #include <proxy/TcpServer.hpp>
 
-void proxy::server::TcpServer::start_accept()
+void proxy::TcpServer::start_accept()
 {
     Connection::ptr new_connection = Connection::create(io_context_);
 
@@ -10,7 +10,7 @@ void proxy::server::TcpServer::start_accept()
                                                                     boost::asio::placeholders::error));
 }
 
-void proxy::server::TcpServer::handler(Connection::ptr new_connection, const boost::system::error_code& error)
+void proxy::TcpServer::handler(Connection::ptr new_connection, const boost::system::error_code& error)
 {
     if (!error)
     {
