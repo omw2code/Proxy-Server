@@ -1,5 +1,5 @@
-#ifndef BOOST_SERVER_H_
-#define BOOST_SERVER_H_
+#ifndef BOOST_SERVER_HPP_
+#define BOOST_SERVER_HPP_
 
 #include <ctime>
 #include <iostream>
@@ -11,6 +11,7 @@
 #include <boost/smart_ptr/enable_shared_from.hpp>
 #include <boost/asio/ip/tcp.hpp> 
 #include <proxy/JobCache.hpp>
+#include <proxy/JobFetcher.hpp>
 
 namespace proxy
 {
@@ -35,14 +36,14 @@ namespace proxy
         void start()
         {
             boost::asio::async_write(socket_, 
-                boost::asio::buffer(json_), 
+                boost::asio::buffer(data_), 
                 boost::bind(&proxy::Connection::handleWrite,
                     shared_from_this(),
                     boost::asio::placeholders::error,
                     boost::asio::placeholders::bytes_transferred));;
 
             boost::asio::async_read(socket_,
-                    boost::asio::buffer(json_, max_length_),
+                    boost::asio::buffer(data_, max_length_),
                     boost::bind(&Connection::handleRead,
                                 shared_from_this(),
                                 boost::asio::placeholders::error,
@@ -57,6 +58,7 @@ namespace proxy
         void handleWrite(const boost::system::error_code& error, std::size_t bytes_transferred) 
         {
             // Implement
+            // Convert bytes transfer
             return;
         }
 
@@ -65,15 +67,23 @@ namespace proxy
             std::unique_lock<std::shared_mutex> lock(connectionMutext_, std::adopt_lock);
             // Need to now query the api
 
-            // get the data
+            // construct our string
+            const std::string job(data_, bytes_transferred);
 
+            if (cache_.get(job).has_value()) {
+                // writer back our json str to the client
+            }
+            else {
+                auto error = jobFetcher_.queryJob(job);
+            }
         }
-        
+
         boost::asio::ip::tcp::socket socket_;
         static constexpr int max_length_{ 1024 };
-        char json_[max_length_];
+        char data_[max_length_];
         std::shared_mutex connectionMutext_;
-        JobCache cache_;
+        const JobCache cache_;
+        const JobFetcher jobFetcher_;
 
     }; // class Connection
 } // namespace proxy

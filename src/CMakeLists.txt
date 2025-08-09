@@ -1,6 +1,7 @@
 add_library( server
   TcpServer.cpp
   JobCache.cpp
+  JobFetcher.cpp
 )
 
 target_include_directories(server

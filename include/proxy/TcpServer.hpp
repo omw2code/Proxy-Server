@@ -1,5 +1,5 @@
-#ifndef TCP_SERVER_H_
-#define TCP_SERVEER_H_
+#ifndef TCP_SERVER_HPP_
+#define TCP_SERVEER_HPP_
 
 #include <proxy/Connection.hpp>
 

@@ -1,5 +1,5 @@
-#ifndef JOB_CACHE_H_
-#define JOB_CACHE_H_
+#ifndef JOB_CACHE_HPP_
+#define JOB_CACHE_HPP_
 
 #include <unordered_map>
 #include <string>
@@ -7,6 +7,7 @@
 #include <shared_mutex>
 #include <chrono>
 
+// TODO: Make me a singleton please
 namespace proxy
 {
     class JobCache
@@ -25,7 +26,7 @@ namespace proxy
         ~JobCache();
 
         // check if in cache
-        std::optional<std::string> get(std::string_view key);
+        std::optional<std::string> get(const std::string& query) const;
 
         // put in cache, disk, and database
         void put(std::string_view key);
@@ -36,7 +37,7 @@ namespace proxy
     private:
         // key -> job search values seperated by | delimiter
         // val -> previously searched job
-        std::unordered_map<int, CacheHit> cache_;
+        std::unordered_map<std::string, CacheHit> cache_;
 
         mutable std::shared_mutex cacheMutex_;
         
