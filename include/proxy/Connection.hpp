@@ -53,7 +53,9 @@ namespace proxy
     private:
         Connection(boost::asio::io_context& io_context)
             : socket_(io_context)
-        {}
+            , jobFetcher_(io_context)
+        {
+        }
         
         void handleWrite(const boost::system::error_code& error, std::size_t bytes_transferred) 
         {
