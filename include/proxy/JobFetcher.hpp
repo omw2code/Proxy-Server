@@ -1,30 +1,31 @@
 #ifndef JOB_FETCHER_HPP_
 #define JOB_FETCHER_HPP_
 
+#include <memory>
 #include <optional>
+#include <string>
+#include <string_view>
 #include <proxy/JobCache.hpp>
 namespace proxy
 {
     class JobFetcher
     {
     public:
-        JobFetcher(boost::asio::io_context& context);
-        ~JobFetcher();
+        JobFetcher(boost::asio::io_context& context, std::shared_ptr<JobCache> cache);
+        ~JobFetcher() = default;
 
-        std::optional<std::string> queryJob(const std::string& what, const std::string& where) const;
+        std::optional<std::string> findJob(const std::string& job);
+        std::optional<std::pair<std::string_view, std::string_view>> splitJobQuery(std::string_view job) const;
+
     private:
-        void unFoldRequest(std::string& json);
-        void unFoldResponse(std::string& json);
+        std::optional<std::string> querySQL(std::string_view job) const;
+        std::optional<std::string> queryAPI(std::string_view job);
 
-        std::string_view host_;
-        std::string_view port_;
-        std::string_view target_;
-        std::string_view appKey_;
-        std::string_view appID_;
-        std::string_view what_;
-        std::string_view where_;
+        std::string host_;
+        std::string port_;
+        std::string target_;
         boost::asio::io_context& ioc_;
-        const JobCache cache_;
+        std::shared_ptr<JobCache> cache_;
     };
 }
 

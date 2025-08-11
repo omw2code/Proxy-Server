@@ -1,6 +1,7 @@
 #ifndef TCP_SERVER_HPP_
 #define TCP_SERVEER_HPP_
 
+#include <memory>
 #include <proxy/Connection.hpp>
 
 namespace proxy
@@ -9,8 +10,9 @@ namespace proxy
     {
     public:
         TcpServer(boost::asio::io_context& io_context, short port) 
-            : io_context_(io_context),
-                acceptor_(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+            : io_context_(io_context)
+            , acceptor_(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+            , cache_(std::make_shared<JobCache>())
             {
                 start_accept();
             }
@@ -25,6 +27,7 @@ namespace proxy
     private:
         boost::asio::io_context& io_context_;
         boost::asio::ip::tcp::acceptor acceptor_;
+        std::shared_ptr<JobCache> cache_;
     }; // class BoostServer
 } // namespace proxy
 

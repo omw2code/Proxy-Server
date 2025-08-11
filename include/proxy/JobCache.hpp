@@ -16,32 +16,31 @@ namespace proxy
         struct CacheHit
         {
             std::string jsonData;
-            std::chrono::steady_clock::time_point ttl; // time to live 
+            std::chrono::steady_clock::time_point expireTime; // time to live 
         };
 
-        JobCache(std::chrono::seconds ttl = std::chrono::seconds(300))
-            : ttl_(ttl)
+        static constexpr std::chrono::minutes default_ttl{5};
+        JobCache(std::chrono::minutes ttl = default_ttl)
+            : cacheDuration_(ttl)
         {}
         
-        ~JobCache();
+        ~JobCache() = default;
 
         // check if in cache
-        std::optional<std::string> get(const std::string& query) const;
+        std::optional<std::string> get(const std::string& query);
 
         // put in cache, disk, and database
-        void put(std::string_view key);
+        void put(std::string_view key, std::string jsonData);
+
 
         // check if the cache is expired
-        bool isExpired(std::chrono::steady_clock::time_point timePoint);
+        static bool isExpired(const std::chrono::steady_clock::time_point& timePoint);
 
     private:
-        // key -> job search values seperated by | delimiter
-        // val -> previously searched job
+        void proxy::JobCache::clearExpired(std::string& key);
         std::unordered_map<std::string, CacheHit> cache_;
-
         mutable std::shared_mutex cacheMutex_;
-        
-        std::chrono::seconds ttl_;
+        std::chrono::seconds cacheDuration_;
     }; // namespace server
 } // namespace proxy
 

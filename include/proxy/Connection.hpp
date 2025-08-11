@@ -2,6 +2,7 @@
 #define BOOST_SERVER_HPP_
 
 #include <ctime>
+#include <memory>
 #include <iostream>
 #include <string>
 #include <memory>
@@ -21,9 +22,9 @@ namespace proxy
         typedef boost::shared_ptr<Connection> ptr;
 
         // create a new connection to our server
-        static ptr create(boost::asio::io_context& io_context)
+        static ptr create(boost::asio::io_context& io_context, std::shared_ptr<JobCache> cache)
         {
-            return ptr(new Connection(io_context));
+            return ptr(new Connection(io_context, cache));
         }
 
         // grab the socket of this connection
@@ -51,9 +52,9 @@ namespace proxy
         }
 
     private:
-        Connection(boost::asio::io_context& io_context)
+        Connection(boost::asio::io_context& io_context, std::shared_ptr<JobCache> cache)
             : socket_(io_context)
-            , jobFetcher_(io_context)
+            , jobFetcher_(io_context, std::move(cache))
         {
         }
         
@@ -67,16 +68,15 @@ namespace proxy
         void handleRead(const boost::system::error_code& error, std::size_t bytes_transferred)
         {
             std::unique_lock<std::shared_mutex> lock(connectionMutext_, std::adopt_lock);
-            // Need to now query the api
 
             // construct our string
-            const std::string job(data_, bytes_transferred);
+            const std::string data(data_, bytes_transferred);
+            auto job = jobFetcher_.findJob(data);
 
-            if (cache_.get(job).has_value()) {
-                // writer back our json str to the client
-            }
-            else {
-                auto error = jobFetcher_.queryJob(job);
+            if (job.has_value()) {
+                // send back the job in json format 
+            } else {
+                // send some error that needs to be handled
             }
         }
 
@@ -84,8 +84,7 @@ namespace proxy
         static constexpr int max_length_{ 1024 };
         char data_[max_length_];
         std::shared_mutex connectionMutext_;
-        const JobCache cache_;
-        const JobFetcher jobFetcher_;
+        JobFetcher jobFetcher_;
 
     }; // class Connection
 } // namespace proxy
