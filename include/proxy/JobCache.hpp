@@ -7,7 +7,6 @@
 #include <shared_mutex>
 #include <chrono>
 
-// TODO: Make me a singleton please
 namespace proxy
 {
     class JobCache
@@ -26,12 +25,10 @@ namespace proxy
         
         ~JobCache() = default;
 
-        // check if in cache
         std::optional<std::string> get(const std::string& query);
 
         // put in cache, disk, and database
         void put(std::string_view key, std::string jsonData);
-
 
         // check if the cache is expired
         static bool isExpired(const std::chrono::steady_clock::time_point& timePoint);
