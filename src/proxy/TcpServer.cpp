@@ -2,7 +2,7 @@
 
 void proxy::TcpServer::start_accept()
 {
-    Connection::ptr new_connection = Connection::create(io_context_);
+    Connection::ptr new_connection = Connection::create(io_context_, cache_);
 
     acceptor_.async_accept(new_connection->socket(), boost::bind(&TcpServer::handler, 
                                                                     this, 

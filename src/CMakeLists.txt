@@ -1,2 +1,2 @@
 add_subdirectory(proxy)
-add_subdirectory(sockets)
+add_subdirectory(websockets)

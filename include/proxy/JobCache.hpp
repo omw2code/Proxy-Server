@@ -26,17 +26,11 @@ public:
     
     ~JobCache() = default;
 
-<<<<<<< HEAD
     // check if in cache
     std::optional<std::string> get(const std::string& query);
-=======
-        std::optional<std::string> get(const std::string& query);
->>>>>>> 1caa878b3f8dc198870f15873a79bd607f782d2d
 
     // put in cache, disk, and database
     void put(std::string_view key, std::string jsonData);
-
-<<<<<<< HEAD
 
     // check if the cache is expired
     static bool isExpired(const std::chrono::steady_clock::time_point& timePoint);
@@ -47,10 +41,7 @@ private:
     mutable std::shared_mutex cacheMutex_;
     std::chrono::seconds cacheDuration_;
 }; // namespace server
-=======
-        // check if the cache is expired
-        static bool isExpired(const std::chrono::steady_clock::time_point& timePoint);
->>>>>>> 1caa878b3f8dc198870f15873a79bd607f782d2d
+
 
 } // namespace proxy
 
