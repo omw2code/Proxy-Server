@@ -19,8 +19,8 @@ std::optional<std::string> proxy::JobFetcher::findJob(const std::string& job)
 {
     // string coming in looks like: "JOB|location"
     if (auto e = cache_.get()->get(job); e) return e;
-    if (auto e = querySQL(job); e.has_value()) return e;
-    if (auto e = queryAPI(job); e.has_value()) return e;
+    if (auto e = querySQL(job); e) return e;
+    if (auto e = queryAPI(job); e) return e;
     
     return std::nullopt;
 }
